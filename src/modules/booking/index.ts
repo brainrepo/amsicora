@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import * as GetSellableServices from '../../modules/booking/actions/get-sellable-services'
+import * as GetSellableServices from '../../modules/booking/actions/get-services'
 
 export default async (server: FastifyInstance) => {
   server.get('/services', {
