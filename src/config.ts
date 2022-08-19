@@ -1,3 +1,7 @@
-import S from 'fluent-json-schema'
-
-export const configSchema = S.object().prop('JWT_SECRET', S.string().required())
+export const configSchema = {
+  type: 'object',
+  properties: {
+    JWT_SECRET: { type: 'string' },
+  },
+  required: ['JWT_SECRET'],
+} as const

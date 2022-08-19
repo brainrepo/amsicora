@@ -16,8 +16,6 @@ const authPlugin: FastifyPluginAsync = fp(async (server, options) => {
     async function (request: FastifyRequest, reply: FastifyReply) {
       try {
         await request.jwtVerify()
-        const services = await server.prisma.user.findMany()
-        console.log(services)
       } catch (err) {
         reply.send(err)
       }

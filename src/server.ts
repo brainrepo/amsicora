@@ -1,9 +1,12 @@
 import fastify, { FastifyInstance } from 'fastify'
 import prismaPlugin from './plugins/prisma'
 import authPlugin from './plugins/auth'
+import authzPlugin from './plugins/authz'
 import userModule from './modules/user'
 import authModule from './modules/auth'
+import bookingModule from './modules/booking'
 import sensiblePlugin from '@fastify/sensible'
+import swaggerPlugin from '@fastify/swagger'
 import envPlugin from '@fastify/env'
 import { configSchema } from './config'
 
@@ -13,9 +16,11 @@ server.register(envPlugin, { schema: configSchema })
 server.register(sensiblePlugin)
 server.register(prismaPlugin)
 server.register(authPlugin)
+server.register(authzPlugin)
 
 server.register(userModule, { prefix: '/user' })
 server.register(authModule, { prefix: '/auth' })
+server.register(bookingModule, { prefix: '/booking' })
 
 const start = async () => {
   try {

@@ -13,6 +13,7 @@ declare module 'fastify' {
       request: FastifyRequest,
       reply: FastifyReply,
     ) => Promise<void>
+    isSeller: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
     bcrypt: {
       hash: (pwd: string) => Promise<string>
       compare: (data: string, hash: string) => Promise<boolean>

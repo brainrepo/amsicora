@@ -13,11 +13,11 @@
     "@fastify/env": "^4.1.0",
     "@fastify/jwt": "^6.3.2",
     "@fastify/sensible": "^5.1.0",
+    "@fastify/swagger": "^7.4.1",
     "@prisma/client": "^4.2.1",
     "fastify": "^4.5.2",
     "fastify-bcrypt": "^1.0.0",
-    "fastify-plugin": "^4.2.0",
-    "fluent-json-schema": "^3.1.0"
+    "fastify-plugin": "^4.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.6",
