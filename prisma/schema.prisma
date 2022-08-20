@@ -11,25 +11,42 @@ datasource db {
 }
 
 model User {
-  id               String     @id @default(uuid())
-  createdAt        DateTime   @default(now())
-  email            String     @unique
+  id               String    @id @default(uuid())
+  createdAt        DateTime  @default(now())
+  email            String    @unique
   name             String?
-  password         String     @default("")
-  role             Role       @default(CUSTOMER)
-  OwnedServices    Services[] @relation(name: "ownedServices")
-  SellableServices Services[] @relation(name: "sellableServices")
+  password         String    @default("")
+  role             Role      @default(CUSTOMER)
+  OwnedServices    Service[] @relation(name: "ownedServices")
+  SellableServices Service[] @relation(name: "sellableServices")
 }
 
-model Services {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean  @default(false)
-  name      String   @db.VarChar(255)
-  owner     User?    @relation(fields: [ownerId], references: [id], name: "ownedServices")
+model Service {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  published Boolean   @default(false)
+  name      String    @db.VarChar(255)
+  owner     User?     @relation(fields: [ownerId], references: [id], name: "ownedServices")
   ownerId   String?
-  sellers   User[]   @relation(name: "sellableServices")
+  sellers   User[]    @relation(name: "sellableServices")
+  shifts    Shift[]
+  variants  Variant[]
+}
+
+model Shift {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(255)
+  service   Service   @relation(fields: [serviceId], references: [id])
+  serviceId String
+  time      DateTime? @db.Timetz()
+}
+
+model Variant {
+  id        String  @id @default(uuid())
+  name      String  @db.VarChar(255)
+  service   Service @relation(fields: [serviceId], references: [id])
+  serviceId String
 }
 
 enum Role {

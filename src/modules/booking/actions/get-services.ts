@@ -9,7 +9,7 @@ export async function action({
   server: FastifyInstance
   payload: RequestType
 }) {
-  return await server.prisma.services.findMany({
+  return await server.prisma.service.findMany({
     select: {
       id: true,
       name: true,
