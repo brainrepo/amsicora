@@ -11,27 +11,30 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(uuid())
-  createdAt        DateTime  @default(now())
-  email            String    @unique
+  id               String     @id @default(uuid())
+  createdAt        DateTime   @default(now())
+  email            String     @unique
   name             String?
-  password         String    @default("")
-  role             Role      @default(CUSTOMER)
-  OwnedServices    Service[] @relation(name: "ownedServices")
-  SellableServices Service[] @relation(name: "sellableServices")
+  password         String     @default("")
+  role             Role       @default(CUSTOMER)
+  ownedServices    Service[]  @relation(name: "SupplierToService")
+  sellableServices Service[]  @relation(name: "SellerToService")
+  resources        Resource[] @relation(name: "ResourceToSeller")
+  resourceId       String?
 }
 
 model Service {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  published Boolean   @default(false)
-  name      String    @db.VarChar(255)
-  owner     User?     @relation(fields: [ownerId], references: [id], name: "ownedServices")
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  published Boolean    @default(false)
+  name      String     @db.VarChar(255)
+  owner     User?      @relation(fields: [ownerId], references: [id], name: "SupplierToService")
   ownerId   String?
-  sellers   User[]    @relation(name: "sellableServices")
+  sellers   User[]     @relation(name: "SellerToService")
   shifts    Shift[]
   variants  Variant[]
+  resources Resource[]
 }
 
 model Shift {
@@ -43,10 +46,29 @@ model Shift {
 }
 
 model Variant {
-  id        String  @id @default(uuid())
-  name      String  @db.VarChar(255)
-  service   Service @relation(fields: [serviceId], references: [id])
+  id        String     @id @default(uuid())
+  name      String     @db.VarChar(255)
+  service   Service    @relation(fields: [serviceId], references: [id])
   serviceId String
+  limit     Int        @default(10)
+  resources Resource[]
+}
+
+model Resource {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(255)
+  service   Service   @relation(fields: [serviceId], references: [id])
+  serviceId String
+  variants  Variant[]
+  limit     Int
+  sellers   User[]    @relation(name: "ResourceToSeller")
+  userId    String?
+}
+
+model ResourceAmount {
+  id         String   @id @default(uuid())
+  amount     Int      @default(0)
+  elapseDate DateTime @db.Timestamptz()
 }
 
 enum Role {

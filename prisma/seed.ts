@@ -5,6 +5,9 @@ import { setHours, setMinutes } from 'date-fns'
 const prisma = new PrismaClient()
 
 async function main() {
+  await prisma.variant.deleteMany()
+  await prisma.resourceAmount.deleteMany()
+  await prisma.resource.deleteMany()
   await prisma.shift.deleteMany()
   await prisma.service.deleteMany()
   await prisma.user.deleteMany()
@@ -73,6 +76,38 @@ async function main() {
               name: 'infant',
             },
           ],
+        },
+      },
+    },
+  })
+
+  const resourcesSeat = await prisma.resource.upsert({
+    where: { id: 'tavolara-boat-excursion-seat' },
+    update: {},
+    create: {
+      id: 'tavolara-boat-excursion-seat',
+      name: 'seat',
+      limit: 100,
+      serviceId: service.id,
+      sellers: {
+        connect: {
+          id: seller.id,
+        },
+      },
+    },
+  })
+
+  const resourcesLunch = await prisma.resource.upsert({
+    where: { id: 'tavolara-boat-excursion-lunch' },
+    update: {},
+    create: {
+      id: 'tavolara-boat-excursion-lunch',
+      name: 'lunch',
+      limit: 50,
+      serviceId: service.id,
+      sellers: {
+        connect: {
+          id: seller.id,
         },
       },
     },

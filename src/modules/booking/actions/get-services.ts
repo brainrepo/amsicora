@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 
-export type RequestType = { sellerId: string }
+export type RequestType = { sellerID: string }
 
 export async function action({
   server,
@@ -19,13 +19,13 @@ export async function action({
         {
           sellers: {
             some: {
-              id: payload.sellerId,
+              id: payload.sellerID,
             },
           },
         },
         {
           owner: {
-            id: payload.sellerId,
+            id: payload.sellerID,
           },
         },
       ],
