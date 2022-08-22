@@ -89,6 +89,32 @@ async function main() {
       name: 'seat',
       limit: 100,
       serviceId: service.id,
+      variants: {
+        connect: [
+          {
+            id: 'tavolara-boat-excursion-adults',
+          },
+          {
+            id: 'tavolara-boat-excursion-children',
+          },
+        ],
+      },
+      resourceAmount: {
+        createMany: {
+          data: [],
+        },
+      },
+    },
+  })
+
+  const resourceSeatAmount = prisma.resourceAmount.create({
+    data: {
+      resourceId: 'tavolara-boat-excursion-seat',
+      id: 'tavolara-boat-excursion-seat-amount-sup',
+      elapseDate: new Date(),
+      amount: 100,
+      date: new Date(),
+      shiftId: 'tavolara-boat-excursion-morning',
       sellers: {
         connect: {
           id: seller.id,
@@ -105,10 +131,15 @@ async function main() {
       name: 'lunch',
       limit: 50,
       serviceId: service.id,
-      sellers: {
-        connect: {
-          id: seller.id,
-        },
+      variants: {
+        connect: [
+          {
+            id: 'tavolara-boat-excursion-adults',
+          },
+          {
+            id: 'tavolara-boat-excursion-children',
+          },
+        ],
       },
     },
   })

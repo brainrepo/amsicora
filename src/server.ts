@@ -1,4 +1,4 @@
-import fastify, { FastifyInstance } from 'fastify'
+import fastify, { FastifyInstance, FastifyPluginAsync } from 'fastify'
 import prismaPlugin from './plugins/prisma'
 import authPlugin from './plugins/auth'
 import authzPlugin from './plugins/authz'
@@ -18,7 +18,9 @@ server.register(prismaPlugin)
 server.register(authPlugin)
 server.register(authzPlugin)
 
-server.register(userModule, { prefix: '/user' })
+server.register(userModule, {
+  prefix: '/user',
+})
 server.register(authModule, { prefix: '/auth' })
 server.register(bookingModule, { prefix: '/booking' })
 

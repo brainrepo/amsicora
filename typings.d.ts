@@ -1,5 +1,6 @@
 import type { PrismaClient, User } from '@prisma/client'
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import ServiceRepository from './src/modules/booking/repository/service'
+import UserRepository from './src/modules/user/repository/user'
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {

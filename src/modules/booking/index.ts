@@ -1,28 +1,29 @@
 import { FastifyInstance } from 'fastify'
-import * as GetSellableServices from '../../modules/booking/actions/get-services'
-import * as GetSellableService from '../../modules/booking/actions/get-service'
+import ServiceRepository from './repository/service'
+import ResourceRepository from './repository/resource'
+import autoload from '@fastify/autoload'
+import path from 'path'
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    booking: {
+      repository: {
+        service: ReturnType<typeof ServiceRepository>
+        resource: ReturnType<typeof ResourceRepository>
+      }
+    }
+  }
+}
 
 export default async (server: FastifyInstance) => {
-  server.get('/services', {
-    onRequest: [server.authenticate, server.isSeller],
-    handler: async (req) =>
-      await GetSellableServices.action({
-        server,
-        payload: { sellerID: req.user.id },
-      }),
+  server.decorate('booking', {
+    repository: {
+      service: ServiceRepository(server.prisma),
+      resource: ResourceRepository(server.prisma),
+    },
   })
 
-  server.get<{
-    Params: {
-      serviceID: string
-    }
-  }>('/services/:serviceID', {
-    onRequest: [server.authenticate, server.isSeller],
-    schema: { params: GetSellableService.requestSchema },
-    handler: async (req) =>
-      await GetSellableService.action({
-        server,
-        payload: { sellerID: req.user.id, serviceID: req.params.serviceID },
-      }),
+  server.register(autoload, {
+    dir: path.join(__dirname, 'routes'),
   })
 }

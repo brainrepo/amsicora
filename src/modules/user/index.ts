@@ -1,10 +1,49 @@
+import { randomUUID } from 'crypto'
 import { FastifyInstance } from 'fastify'
-import * as GetToken from '../../modules/auth/actions/get-token'
-import * as Register from '../../modules/user/actions/register'
+import { FromSchema } from 'json-schema-to-ts'
+import UserRepository from './repository/user'
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    user: {
+      repository: {
+        user: ReturnType<typeof UserRepository>
+      }
+    }
+  }
+}
 
 export default async (server: FastifyInstance) => {
-  server.post<{ Body: Register.RequestType }>('/register', {
-    schema: { body: Register.requestSchema },
-    handler: async (req) => Register.action({ server, payload: req.body }),
+  server.decorate('user', {
+    repository: {
+      user: UserRepository(server.prisma),
+    },
   })
+
+  const registerRequestSchema = {
+    body: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string', format: 'email' },
+        password: { type: 'string' },
+      },
+      required: ['name', 'email', 'password'],
+    },
+  } as const
+
+  server.post<{ Body: FromSchema<typeof registerRequestSchema.body> }>(
+    '/register',
+    {
+      schema: registerRequestSchema,
+      handler: async (req) => {
+        const { name, email } = await server.user.repository.user.create({
+          ...req.body,
+          id: randomUUID(),
+          password: await server.bcrypt.hash(req.body.password),
+        })
+        return { name, email }
+      },
+    },
+  )
 }
