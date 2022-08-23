@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import ServiceRepository from './repository/service'
-import ResourceRepository from './repository/resource'
+import VariantRepository from './repository/variant'
 import autoload from '@fastify/autoload'
 import path from 'path'
 
@@ -9,7 +9,7 @@ declare module 'fastify' {
     booking: {
       repository: {
         service: ReturnType<typeof ServiceRepository>
-        resource: ReturnType<typeof ResourceRepository>
+        variant: ReturnType<typeof VariantRepository>
       }
     }
   }
@@ -19,7 +19,7 @@ export default async (server: FastifyInstance) => {
   server.decorate('booking', {
     repository: {
       service: ServiceRepository(server.prisma),
-      resource: ResourceRepository(server.prisma),
+      variant: VariantRepository(server.prisma),
     },
   })
 

@@ -69,7 +69,7 @@ model Resource {
 model ResourceAmount {
   id                   String                 @id @default(uuid())
   amount               Int                    @default(0)
-  date                 DateTime               @db.Timestamptz()
+  date                 DateTime               @db.Date
   shift                Shift                  @relation(fields: [shiftId], references: [id])
   shiftId              String
   elapseDate           DateTime               @db.Timestamptz()

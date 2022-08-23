@@ -1,8 +1,8 @@
-import ResourceRepository from '../repository/resource'
+import VariantRepository from '../repository/variant'
 
 export default async function resourcesAvailable({
   request,
-  resourceRepository,
+  variantRepository,
 }: {
   request: {
     shift: string
@@ -11,16 +11,25 @@ export default async function resourcesAvailable({
       amount: number
     }[]
     date: string
+    seller: {
+      id: string
+    }
   }
-  resourceRepository: ReturnType<typeof ResourceRepository>
+  variantRepository: ReturnType<typeof VariantRepository>
 }) {
-  const resources = await resourceRepository.getByVariantIDs(
-    request.variants.map((e) => e.id),
-  )
+  const variants =
+    await variantRepository.getWithResourcesAndAmountsByIDsAndSeller(
+      request.variants.map((e) => e.id),
+      request.seller.id,
+      request.date,
+      request.shift,
+    )
 
-  for (const resource of resources) {
+  for (const variant of variants) {
     // requested resource under limit
 
-    console.log(resource.name, resource)
+    console.log(variant.name, variant)
   }
+
+  return variants
 }

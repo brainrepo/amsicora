@@ -107,7 +107,7 @@ async function main() {
     },
   })
 
-  const resourceSeatAmount = prisma.resourceAmount.create({
+  const resourceSeatAmount = await prisma.resourceAmount.create({
     data: {
       resourceId: 'tavolara-boat-excursion-seat',
       id: 'tavolara-boat-excursion-seat-amount-sup',
