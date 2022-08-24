@@ -1,6 +1,9 @@
 import { ResourceAmountLocker } from '@prisma/client'
 import VariantRepository from '../repository/variant'
+import { sum } from '../../../utils/array'
 
+//TODO: Clear exported interfaces for in and out
+//TODO: Map for errors
 export default async function resourcesAvailable({
   request,
   variantRepository,
@@ -46,32 +49,21 @@ export default async function resourcesAvailable({
       const result = resource.resourceAmount.reduce(
         (acc, el) => {
           const availableAmount =
-            el.amount -
-            /* move the sum to an helper function*/
-            el.resourceAmountLocker
-              .map((e) => e.amount)
-              .reduce((a, e) => a + e, 0)
+            el.amount - sum(el.resourceAmountLocker, 'amount')
 
-          if (availableAmount >= acc.residualAmount) {
-            return {
-              residualAmount: 0,
-              lockers: [
-                ...acc.lockers,
-                {
-                  amount: acc.residualAmount,
-                  resourceAmountId: el.id,
-                  sellerId: request.seller.id,
-                },
-              ],
-            }
-          }
+          const isAvailabilityAmountEnough =
+            availableAmount >= acc.residualAmount
 
           return {
-            residualAmount: acc.residualAmount - availableAmount,
+            residualAmount: isAvailabilityAmountEnough
+              ? 0
+              : acc.residualAmount - availableAmount,
             lockers: [
               ...acc.lockers,
               {
-                amount: availableAmount,
+                amount: isAvailabilityAmountEnough
+                  ? acc.residualAmount
+                  : availableAmount,
                 resourceAmountId: el.id,
                 sellerId: request.seller.id,
               },
