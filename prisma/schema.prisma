@@ -75,6 +75,7 @@ model ResourceAmount {
   elapseDate           DateTime               @db.Timestamptz()
   resource             Resource               @relation(fields: [resourceId], references: [id])
   resourceId           String
+  isAllotment          Boolean                @default(false)
   sellers              User[]                 @relation(name: "ResourceAmountToSeller")
   resourceAmountLocker ResourceAmountLocker[]
 }
@@ -86,7 +87,7 @@ model ResourceAmountLocker {
   resourceAmount   ResourceAmount @relation(fields: [resourceAmountId], references: [id])
   resourceAmountId String
   seller           User           @relation(fields: [sellerId], references: [id])
-  sellerId           String
+  sellerId         String
 }
 
 enum Role {

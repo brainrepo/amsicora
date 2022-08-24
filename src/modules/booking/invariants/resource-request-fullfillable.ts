@@ -1,9 +1,16 @@
 import { ResourceAmountLocker } from '@prisma/client'
 import VariantRepository from '../repository/variant'
 import { sum } from '../../../utils/array'
+import { BookingMalformedRequest, BookingNotAvailableResource } from '../errors'
 
 //TODO: Clear exported interfaces for in and out
 //TODO: Map for errors
+//TODO: **IMPORTANT!** the function is not considering the in reservation lockers, since the 
+//                     reservation can have resources shared by multiple variants, we can
+//                     have a case when in the same reservation we have two different variants
+//                     using the same resource, then when we book the second variant we need
+//                     to consider the resourceAmountLocked from the previous variant.
+
 export default async function resourcesAvailable({
   request,
   variantRepository,
@@ -29,17 +36,25 @@ export default async function resourcesAvailable({
       request.shift,
     )
 
-  //TODO: improve the iterate result
-  //TODO: create an error map
-  return variants.map((variant) => {
-    const resourceReturn = variant.resources.map((resource) => {
-      const requestedAmount = request.variants.find(
-        (variantReq) => (variantReq.id = variant.id),
-      )?.amount
+  if (
+    variants.length !== request.variants.length ||
+    request.variants.length === 0
+  ) {
+    return new BookingMalformedRequest('Duplicate or not known variant')
+  }
 
-      if (typeof requestedAmount === 'undefined') {
-        return 'error'
-      }
+  //TODO: improve the iterate result
+  return variants.map((variant) => {
+    return variant.resources.map((resource) => {
+      const requestedAmount =
+        (
+          request.variants.find(
+            (variantReq) => (variantReq.id = variant.id),
+          ) as /*TODO extract type to interfaces*/ {
+            id: string
+            amount: number
+          }
+        ).amount ?? 0
 
       type resultT = {
         residualAmount: number
@@ -49,19 +64,18 @@ export default async function resourcesAvailable({
       const result = resource.resourceAmount.reduce(
         (acc, el) => {
           const availableAmount =
-            el.amount - sum(el.resourceAmountLocker, 'amount')
+            el.amount - sum(el.resourceAmountLocker, 'amount') /* TODO: subtract acc.lockers that matches with this resourceAmount */
 
-          const isAvailabilityAmountEnough =
-            availableAmount >= acc.residualAmount
+          const isAvailabileAmountEnough = availableAmount >= acc.residualAmount
 
           return {
-            residualAmount: isAvailabilityAmountEnough
+            residualAmount: isAvailabileAmountEnough
               ? 0
               : acc.residualAmount - availableAmount,
             lockers: [
               ...acc.lockers,
               {
-                amount: isAvailabilityAmountEnough
+                amount: isAvailabileAmountEnough
                   ? acc.residualAmount
                   : availableAmount,
                 resourceAmountId: el.id,
@@ -79,15 +93,15 @@ export default async function resourcesAvailable({
       if (result.residualAmount > 0) {
         // return no enough availability
         // TODO: Improving error returning
-        return {
-          resource,
-          response: `no enough availability for ${variant.name} and ${resource.name}`,
-        }
+        return new BookingNotAvailableResource(
+          'resource not available',
+          variant.id,
+          resource.id,
+          result.residualAmount,
+        )
       }
       // TODO: improve return values
-      return { resource, response: result.lockers }
+     return result.lockers 
     })
-    // TODO: improve return values
-    return { variant, response: resourceReturn }
-  })
+  }).flat(3)
 }

@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { parseISO } from 'date-fns'
-// to do get resource with usable resources amount
+
 export default (prisma: PrismaClient) => ({
-  //add elapse date
   async getWithResourcesAndAmountsByIDsAndSeller(
     variantIDs: string[],
     sellerID: string,
@@ -24,13 +23,20 @@ export default (prisma: PrismaClient) => ({
                 resourceAmountLocker: true,
                 date: true,
                 shift: true,
+                isAllotment: true,
               },
               where: {
                 date: parseISO(date),
                 shiftId: shift,
-                sellers: {
-                  some: {
-                    id: sellerID,
+                elapseDate: {
+                  gte: new Date(),
+                },
+                OR: {
+                  isAllotment: false,
+                  sellers: {
+                    some: {
+                      id: sellerID,
+                    },
                   },
                 },
               },
