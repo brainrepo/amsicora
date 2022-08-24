@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { FromSchema } from 'json-schema-to-ts'
 import shiftExist from '../invariants/shift-exist'
 import variantsExist from '../invariants/variants-exist'
-import resourcesAreAvailable from '../invariants/resources-are-available'
+import resourcesRequestAreAvailable from '../invariants/resource-request-fullfillable'
 
 const RequestSchema = {
   params: {
@@ -68,7 +68,7 @@ export default async (server: FastifyInstance) => {
         return server.httpErrors.notFound('shift not found')
       }
 
-      return await resourcesAreAvailable({
+      return await resourcesRequestAreAvailable({
         request: {
           ...req.body,
           seller: { id: req.user.id },
