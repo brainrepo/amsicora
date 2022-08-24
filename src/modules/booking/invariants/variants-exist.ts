@@ -1,5 +1,3 @@
-import { Service } from '@prisma/client'
-
 export default function variantsExist(
   service: { variants: { id: string }[] },
   requestedVariants: { id: string }[],

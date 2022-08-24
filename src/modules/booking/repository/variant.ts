@@ -21,7 +21,7 @@ export default (prisma: PrismaClient) => ({
               select: {
                 id: true,
                 amount: true,
-                ResourceAmountLocker: true,
+                resourceAmountLocker: true,
                 date: true,
                 shift: true,
               },

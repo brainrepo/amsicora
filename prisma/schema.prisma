@@ -21,7 +21,7 @@ model User {
   sellableServices     Service[]              @relation(name: "SellerToService")
   resourceAmounts      ResourceAmount[]       @relation(name: "ResourceAmountToSeller")
   resourceId           String?
-  ResourceAmountLocker ResourceAmountLocker[]
+  resourceAmountLocker ResourceAmountLocker[]
 }
 
 model Service {
@@ -44,7 +44,7 @@ model Shift {
   service        Service          @relation(fields: [serviceId], references: [id])
   serviceId      String
   time           DateTime?        @db.Timetz()
-  ResourceAmount ResourceAmount[]
+  resourceAmount ResourceAmount[]
 }
 
 model Variant {
@@ -76,7 +76,7 @@ model ResourceAmount {
   resource             Resource               @relation(fields: [resourceId], references: [id])
   resourceId           String
   sellers              User[]                 @relation(name: "ResourceAmountToSeller")
-  ResourceAmountLocker ResourceAmountLocker[]
+  resourceAmountLocker ResourceAmountLocker[]
 }
 
 model ResourceAmountLocker {

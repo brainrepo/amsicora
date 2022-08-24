@@ -1,6 +1,5 @@
-import { FastifyInstance, FastifyRequest } from 'fastify'
+import { FastifyInstance } from 'fastify'
 import { FromSchema } from 'json-schema-to-ts'
-import { stringify } from 'querystring'
 import shiftExist from '../invariants/shift-exist'
 import variantsExist from '../invariants/variants-exist'
 import resourcesAreAvailable from '../invariants/resources-are-available'
@@ -9,12 +8,15 @@ const RequestSchema = {
   params: {
     type: 'object',
     properties: {
-      serviceID: { type: 'string' },
+      serviceID: {
+        type: 'string',
+      },
     },
     required: ['serviceID'],
   },
   body: {
     type: 'object',
+    required: ['variants', 'shift', 'date'],
     properties: {
       date: {
         type: 'string',
@@ -26,25 +28,30 @@ const RequestSchema = {
       variants: {
         type: 'array',
         items: {
-          id: 'string',
-          amount: 'string',
+          type: 'object',
+          required: ['id', 'amount'],
+          properties: {
+            id: {
+              type: 'string',
+            },
+            amount: {
+              type: 'number',
+            },
+          },
+          minItems: 1,
         },
       },
     },
-    required: ['date', 'shift', 'variants'],
   },
 } as const
 
 export default async (server: FastifyInstance) => {
   server.post<{
-    Body: {
-      date: string
-      shift: string
-      variants: { id: string; amount: number }[]
-    }
+    Body: FromSchema<typeof RequestSchema.body>
     Params: FromSchema<typeof RequestSchema.params>
-  }>('/services/:serviceID/quotes', {
+  }>('/services/:serviceID/quotation', {
     onRequest: [server.authenticate, server.isSeller],
+    schema: RequestSchema,
     handler: async (req) => {
       const service = await server.booking.repository.service.getByIdIfSellable(
         req.params.serviceID,
@@ -62,7 +69,12 @@ export default async (server: FastifyInstance) => {
       }
 
       return await resourcesAreAvailable({
-        request: { ...req.body, seller: { id: req.user.id } },
+        request: {
+          ...req.body,
+          seller: { id: req.user.id },
+          shift: req.body.shift,
+          date: req.body.date,
+        },
         variantRepository: server.booking.repository.variant,
       })
 
