@@ -2,32 +2,44 @@ import { ResourceAmountLocker } from '@prisma/client'
 import VariantRepository from '../repository/variant'
 import { sum } from '../../../utils/array'
 import { BookingMalformedRequest, BookingNotAvailableResource } from '../errors'
+import variant from '../repository/variant'
 
 //TODO: Clear exported interfaces for in and out
-//TODO: Map for errors
-//TODO: **IMPORTANT!** the function is not considering the in reservation lockers, since the 
-//                     reservation can have resources shared by multiple variants, we can
-//                     have a case when in the same reservation we have two different variants
-//                     using the same resource, then when we book the second variant we need
-//                     to consider the resourceAmountLocked from the previous variant.
+// **IMPORTANT!** the function is considering the in-reservation lockers, since the
+//                reservation can have resources shared by multiple variants, we can
+//                face a situation when the same reservation can have two different variants
+//                that uses the same resource, then when we book the second variant we
+//                consider the resourceAmountLocked from the previous variant.
+
+interface Request {
+  shift: string
+  variants: {
+    id: string
+    amount: number
+  }[]
+  date: string
+  seller: {
+    id: string
+  }
+}
+
+interface SuccessResponse {
+  lockers: Partial<ResourceAmountLocker>[]
+}
+
+interface ErrorResponse {
+  errors: Array<BookingMalformedRequest | BookingNotAvailableResource>
+}
+
+type Response = SuccessResponse | ErrorResponse
 
 export default async function resourcesAvailable({
   request,
   variantRepository,
 }: {
-  request: {
-    shift: string
-    variants: {
-      id: string
-      amount: number
-    }[]
-    date: string
-    seller: {
-      id: string
-    }
-  }
+  request: Request
   variantRepository: ReturnType<typeof VariantRepository>
-}) {
+}): Promise<Response> {
   const variants =
     await variantRepository.getWithResourcesAndAmountsByIDsAndSeller(
       request.variants.map((e) => e.id),
@@ -40,68 +52,71 @@ export default async function resourcesAvailable({
     variants.length !== request.variants.length ||
     request.variants.length === 0
   ) {
-    return new BookingMalformedRequest('Duplicate or not known variant')
+    return {
+      errors: [new BookingMalformedRequest('Duplicate or not known variant')],
+    }
   }
 
-  //TODO: improve the iterate result
-  return variants.map((variant) => {
-    return variant.resources.map((resource) => {
-      const requestedAmount =
-        (
-          request.variants.find(
-            (variantReq) => (variantReq.id = variant.id),
-          ) as /*TODO extract type to interfaces*/ {
-            id: string
-            amount: number
-          }
-        ).amount ?? 0
+  let lockers: Partial<ResourceAmountLocker>[] = []
+  let errors: Array<BookingMalformedRequest | BookingNotAvailableResource> = []
 
-      type resultT = {
-        residualAmount: number
-        lockers: Partial<ResourceAmountLocker>[]
-      }
+  for (const variant of variants) {
+    const requestedAmount =
+      (
+        request.variants.find(
+          (variantReq) => variantReq.id === variant.id,
+        ) as /*TODO extract type to interfaces*/ {
+          id: string
+          amount: number
+        }
+      ).amount ?? 0
 
-      const result = resource.resourceAmount.reduce(
-        (acc, el) => {
-          const availableAmount =
-            el.amount - sum(el.resourceAmountLocker, 'amount') /* TODO: subtract acc.lockers that matches with this resourceAmount */
+    for (const variantResource of variant.resources) {
+      let residualAmount = requestedAmount
 
-          const isAvailabileAmountEnough = availableAmount >= acc.residualAmount
-
-          return {
-            residualAmount: isAvailabileAmountEnough
-              ? 0
-              : acc.residualAmount - availableAmount,
-            lockers: [
-              ...acc.lockers,
-              {
-                amount: isAvailabileAmountEnough
-                  ? acc.residualAmount
-                  : availableAmount,
-                resourceAmountId: el.id,
-                sellerId: request.seller.id,
-              },
-            ],
-          }
-        },
-        {
-          residualAmount: requestedAmount,
-          lockers: [],
-        } as resultT,
-      )
-
-      if (result.residualAmount > 0) {
-        // return no enough availability
-        // TODO: Improving error returning
-        return new BookingNotAvailableResource(
-          'resource not available',
-          variant.id,
-          resource.id,
-          result.residualAmount,
+      for (const resourceAmount of variantResource.resourceAmount) {
+        const lockedAmountInThisRequest = sum(
+          lockers.filter((l) => l.resourceAmountId === resourceAmount.id),
+          'amount',
         )
+        const lockedAmountInOtherReservations = sum(
+          resourceAmount.resourceAmountLocker,
+          'amount',
+        )
+        const availableAmount =
+          resourceAmount.amount -
+          lockedAmountInOtherReservations -
+          lockedAmountInThisRequest
+
+        const isAvailabileAmountEnough = availableAmount >= residualAmount
+        // Update lockers
+        lockers = [
+          ...lockers,
+          {
+            amount: isAvailabileAmountEnough ? residualAmount : availableAmount,
+            resourceAmountId: resourceAmount.id,
+            sellerId: request.seller.id,
+          },
+        ]
+        // Update residual amount
+        residualAmount = isAvailabileAmountEnough
+          ? 0
+          : residualAmount - availableAmount
       }
-      // TODO: improve return values
-     return result.lockers 
-    })
-  }).flat(3)
+
+      if (residualAmount > 0) {
+        errors = [
+          ...errors,
+          new BookingNotAvailableResource(
+            'no disp',
+            variant.id,
+            variantResource.id,
+            residualAmount,
+          ),
+        ]
+      }
+    }
+  }
+
+  return { lockers, errors }
 }

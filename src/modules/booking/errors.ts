@@ -16,6 +16,6 @@ export class BookingNotAvailableResource extends Error {
     public residualAmount: number,
   ) {
     super(message)
-    this.name = BOOKING_MALFORMED_REQUEST
+    this.name = BOOKING_NOT_AVAILABLE_RESOURCE
   }
 }

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { randomUUID } from 'crypto'
-import { setHours, setMinutes } from 'date-fns'
+import { addDays, setHours, setMinutes } from 'date-fns'
 
 const prisma = new PrismaClient()
 
@@ -16,6 +16,7 @@ async function main() {
     where: { email: 'seller@amsicora.io' },
     update: {},
     create: {
+      id: 'amsicora-seller',
       email: 'seller@amsicora.io',
       name: 'Amsicora seller',
       role: 'SELLER',
@@ -111,9 +112,9 @@ async function main() {
     data: {
       resourceId: 'tavolara-boat-excursion-seat',
       id: 'tavolara-boat-excursion-seat-amount-sup',
-      elapseDate: new Date(),
+      elapseDate: addDays(new Date(), 1),
       amount: 100,
-      date: new Date(),
+      date: addDays(new Date(), 1),
       shiftId: 'tavolara-boat-excursion-morning',
       sellers: {
         connect: {
@@ -140,6 +141,22 @@ async function main() {
             id: 'tavolara-boat-excursion-children',
           },
         ],
+      },
+    },
+  })
+
+  const resourceLunchAmount = await prisma.resourceAmount.create({
+    data: {
+      resourceId: 'tavolara-boat-excursion-lunch',
+      id: 'tavolara-boat-excursion-lunch-amount-sup',
+      elapseDate: addDays(new Date(), 1),
+      amount: 100,
+      date: addDays(new Date(), 1),
+      shiftId: 'tavolara-boat-excursion-morning',
+      sellers: {
+        connect: {
+          id: seller.id,
+        },
       },
     },
   })
