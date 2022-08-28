@@ -3,6 +3,7 @@ import VariantRepository from '../repository/variant'
 import { sum } from '../../../utils/array'
 import { BookingMalformedRequest, BookingNotAvailableResource } from '../errors'
 import variant from '../repository/variant'
+import { ArrayItemType } from '../../../utils/types'
 
 //TODO: Clear exported interfaces for in and out
 // **IMPORTANT!** the function is considering the in-reservation lockers, since the
@@ -23,15 +24,10 @@ interface Request {
   }
 }
 
-interface SuccessResponse {
-  lockers: Partial<ResourceAmountLocker>[]
+interface Response {
+  lockers?: Partial<ResourceAmountLocker>[]
+  errors?: Array<BookingMalformedRequest | BookingNotAvailableResource>
 }
-
-interface ErrorResponse {
-  errors: Array<BookingMalformedRequest | BookingNotAvailableResource>
-}
-
-type Response = SuccessResponse | ErrorResponse
 
 export default async function resourcesAvailable({
   request,
@@ -65,10 +61,7 @@ export default async function resourcesAvailable({
       (
         request.variants.find(
           (variantReq) => variantReq.id === variant.id,
-        ) as /*TODO extract type to interfaces*/ {
-          id: string
-          amount: number
-        }
+        ) as ArrayItemType<Request['variants']>
       ).amount ?? 0
 
     for (const variantResource of variant.resources) {
@@ -106,9 +99,9 @@ export default async function resourcesAvailable({
 
       if (residualAmount > 0) {
         errors = [
-          ...errors,
+          ...errors.flat(3),
           new BookingNotAvailableResource(
-            'no disp',
+            'Not enough availability',
             variant.id,
             variantResource.id,
             residualAmount,
