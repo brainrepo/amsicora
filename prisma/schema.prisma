@@ -22,6 +22,7 @@ model User {
   resourceAmounts      ResourceAmount[]       @relation(name: "ResourceAmountToSeller")
   resourceId           String?
   resourceAmountLocker ResourceAmountLocker[]
+  Prices               Price[]                @relation(name: "PriceToSeller")
 }
 
 model Service {
@@ -45,6 +46,7 @@ model Shift {
   serviceId      String
   time           DateTime?        @db.Timetz()
   resourceAmount ResourceAmount[]
+  Price          Price[]
 }
 
 model Variant {
@@ -54,6 +56,7 @@ model Variant {
   serviceId String
   limit     Int        @default(10)
   resources Resource[]
+  prices    Price[]    @relation(name: "PriceToVariant")
 }
 
 model Resource {
@@ -89,6 +92,18 @@ model ResourceAmountLocker {
   resourceAmountId String
   seller           User           @relation(fields: [sellerId], references: [id])
   sellerId         String
+}
+
+model Price {
+  id       String    @id @default(uuid())
+  cost     Decimal
+  fee      Decimal
+  from     DateTime  @db.Date
+  to       DateTime  @db.Date
+  shift    Shift     @relation(fields: [shiftId], references: [id])
+  shiftId  String
+  sellers  User[]    @relation(name: "PriceToSeller")
+  variants Variant[] @relation(name: "PriceToVariant")
 }
 
 enum Role {

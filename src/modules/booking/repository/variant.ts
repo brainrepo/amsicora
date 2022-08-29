@@ -46,6 +46,22 @@ export default (prisma: PrismaClient) => ({
             },
           },
         },
+        prices: {
+          where: {
+            shiftId: shift,
+            from: {
+              lte: parseISO(date),
+            },
+            to: {
+              gte: parseISO(date),
+            },
+            sellers: {
+              some: {
+                id: sellerID,
+              },
+            },
+          },
+        },
       },
       where: {
         id: {
