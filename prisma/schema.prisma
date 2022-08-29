@@ -76,6 +76,7 @@ model ResourceAmount {
   resource             Resource               @relation(fields: [resourceId], references: [id])
   resourceId           String
   isAllotment          Boolean                @default(false)
+  priority             Int                    @default(100)
   sellers              User[]                 @relation(name: "ResourceAmountToSeller")
   resourceAmountLocker ResourceAmountLocker[]
 }

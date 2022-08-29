@@ -23,7 +23,10 @@ export default (prisma: PrismaClient) => ({
                 resourceAmountLocker: true,
                 date: true,
                 shift: true,
-                isAllotment: true,
+                priority: true,
+              },
+              orderBy: {
+                priority: 'desc',
               },
               where: {
                 date: parseISO(date),

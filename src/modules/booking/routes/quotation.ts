@@ -68,7 +68,7 @@ export default async (server: FastifyInstance) => {
         return server.httpErrors.notFound('shift not found')
       }
 
-      return await resourcesRequestAreAvailable({
+      const availability = await resourcesRequestAreAvailable({
         request: {
           ...req.body,
           seller: { id: req.user.id },
@@ -78,13 +78,7 @@ export default async (server: FastifyInstance) => {
         variantRepository: server.booking.repository.variant,
       })
 
-      // iterate on variants
-      // get resources
-      // iterate on resources amount for the select shift and date
-      // reduce from lockers
-      // throw if no disp
-      // --- return lockers
-      // price calc
+      // const prices = /* await calculate prices */
 
       // return { ...(req.body as object), ...req.params }
     },
