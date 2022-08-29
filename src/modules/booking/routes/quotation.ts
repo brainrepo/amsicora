@@ -58,6 +58,7 @@ export default async (server: FastifyInstance) => {
         req.user.id,
       )
 
+      const variantRepository = server.booking.repository.variant
       if (!service) return server.httpErrors.notFound('service not found')
 
       if (!variantsExist(service, req.body.variants)) {
@@ -68,6 +69,14 @@ export default async (server: FastifyInstance) => {
         return server.httpErrors.notFound('shift not found')
       }
 
+      const variants =
+        await variantRepository.getWithResourcesAndAmountsByIDsAndSeller(
+          req.body.variants.map((e) => e.id),
+          req.user.id,
+          req.body.date,
+          req.body.shift,
+        )
+
       const availability = await resourcesRequestAreAvailable({
         request: {
           ...req.body,
@@ -75,9 +84,10 @@ export default async (server: FastifyInstance) => {
           shift: req.body.shift,
           date: req.body.date,
         },
-        variantRepository: server.booking.repository.variant,
+        variants,
       })
 
+      console.log(variants)
       // const prices = /* await calculate prices */
 
       // return { ...(req.body as object), ...req.params }

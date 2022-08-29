@@ -4,15 +4,6 @@ import { BookingNotAvailableResource } from '../../../../src/modules/booking/err
 import enoughAvailability from './mocks/enough-availability'
 import type { PrismaClient } from '@prisma/client'
 
-let fun = jest.fn()
-jest.mock('../../../../src/modules/booking/repository/variant', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      getWithResourcesAndAmountsByIDsAndSeller: fun,
-    }
-  })
-})
-
 // !IMPORTANT:
 //
 // This test doesn't cover unaccesssible allotments because in managed by prisma
@@ -44,9 +35,10 @@ describe('resource-request-fullfillable', () => {
       ],
     }
 
-    fun.mockResolvedValue(enoughAvailability)
-
-    const res = await resourcesAvailable({ request, variantRepository })
+    const res = await resourcesAvailable({
+      request,
+      variants: enoughAvailability,
+    })
     expect(res?.errors).toHaveLength(0)
     expect(res.lockers).toStrictEqual([
       {
@@ -91,9 +83,10 @@ describe('resource-request-fullfillable', () => {
       ],
     }
 
-    fun.mockResolvedValue(enoughAvailability)
-
-    const res = await resourcesAvailable({ request, variantRepository })
+    const res = await resourcesAvailable({
+      request,
+      variants: enoughAvailability,
+    })
     console.log(JSON.stringify(res))
     expect(res?.errors).toHaveLength(2)
 
@@ -131,9 +124,10 @@ describe('resource-request-fullfillable', () => {
       ],
     }
 
-    fun.mockResolvedValue(enoughAvailability)
-
-    const res = await resourcesAvailable({ request, variantRepository })
+    const res = await resourcesAvailable({
+      request,
+      variants: enoughAvailability,
+    })
     expect(res?.errors?.[0].name).toEqual('BOOKING_MALFORMED_REQUEST')
   })
 })

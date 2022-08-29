@@ -29,21 +29,21 @@ interface Response {
   errors?: Array<BookingMalformedRequest | BookingNotAvailableResource>
 }
 
+type Variants = Awaited<
+  ReturnType<
+    ReturnType<
+      typeof VariantRepository
+    >['getWithResourcesAndAmountsByIDsAndSeller']
+  >
+>
+
 export default async function resourcesAvailable({
   request,
-  variantRepository,
+  variants,
 }: {
   request: Request
-  variantRepository: ReturnType<typeof VariantRepository>
+  variants: Variants
 }): Promise<Response> {
-  const variants =
-    await variantRepository.getWithResourcesAndAmountsByIDsAndSeller(
-      request.variants.map((e) => e.id),
-      request.seller.id,
-      request.date,
-      request.shift,
-    )
-
   if (
     variants.length !== request.variants.length ||
     request.variants.length === 0

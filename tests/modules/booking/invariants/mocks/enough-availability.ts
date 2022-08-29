@@ -5,10 +5,13 @@
 // - the seat has enough availability with some locker
 // all the availability is fullfillable
 
+import { parseISO } from 'date-fns'
+
 export default [
   {
     id: 'tavolara-boat-excursion-adults',
     name: 'adults',
+    prices: [],
     resources: [
       {
         id: 'tavolara-boat-excursion-seat',
@@ -18,18 +21,23 @@ export default [
           {
             id: 'tavolara-boat-excursion-seat-amount-sup',
             amount: 100,
+            priority: 100,
             resourceAmountLocker: [
               {
                 id: 'l',
                 amount: 20,
                 reservationID: '123',
                 sellerId: 'asdsadi',
+                reservationId: 'aaa',
+                resourceAmountId: 'tavolara-boat-excursion-seat-amount-sup',
               },
               {
                 id: 'l1',
                 amount: 30,
                 reservationID: '123',
                 sellerId: 'asdsadi',
+                reservationId: 'aaa',
+                resourceAmountId: 'tavolara-boat-excursion-seat-amount-sup',
               },
             ],
             date: new Date(),
@@ -37,7 +45,7 @@ export default [
               id: 'tavolara-boat-excursion-morning',
               name: 'morning',
               serviceId: 'tavolara-boat-excursion',
-              time: '1970-01-01T07:30:44.067Z',
+              time: parseISO('1970-01-01T07:30:44.067Z'),
             },
             isAllotment: false,
           },
@@ -48,6 +56,7 @@ export default [
         name: 'lunch',
         resourceAmount: [
           {
+            priority: 100,
             //20 pax available
             id: 'tavolara-boat-excursion-lunch-amount-sup',
             amount: 10,
@@ -57,7 +66,7 @@ export default [
               id: 'tavolara-boat-excursion-morning',
               name: 'morning',
               serviceId: 'tavolara-boat-excursion',
-              time: '1970-01-01T07:30:44.067Z',
+              time: parseISO('1970-01-01T07:30:44.067Z'),
             },
             isAllotment: false,
           },
@@ -68,6 +77,7 @@ export default [
   {
     id: 'tavolara-boat-excursion-children',
     name: 'children',
+    prices: [],
     resources: [
       {
         // 50 available but shared with adults
@@ -77,18 +87,23 @@ export default [
           {
             id: 'tavolara-boat-excursion-seat-amount-sup',
             amount: 100,
+            priority: 100,
             resourceAmountLocker: [
               {
                 id: 'l',
                 amount: 20,
                 reservationID: '123',
                 sellerId: 'asdsadi',
+                reservationId: 'aaa',
+                resourceAmountId: 'tavolara-boat-excursion-seat-amount-sup',
               },
               {
                 id: 'l1',
                 amount: 30,
                 reservationID: '123',
                 sellerId: 'asdsadi',
+                reservationId: 'aaa',
+                resourceAmountId: 'tavolara-boat-excursion-seat-amount-sup',
               },
             ],
             date: new Date(),
@@ -96,7 +111,7 @@ export default [
               id: 'tavolara-boat-excursion-morning',
               name: 'morning',
               serviceId: 'tavolara-boat-excursion',
-              time: '1970-01-01T07:30:44.067Z',
+              time: parseISO('1970-01-01T07:30:44.067Z'),
             },
             isAllotment: false,
           },
@@ -110,13 +125,14 @@ export default [
           {
             id: 'tavolara-boat-excursion-lunch-amount-sup',
             amount: 10,
+            priority: 100,
             resourceAmountLocker: [],
             date: new Date(),
             shift: {
               id: 'tavolara-boat-excursion-morning',
               name: 'morning',
               serviceId: 'tavolara-boat-excursion',
-              time: '1970-01-01T07:30:44.067Z',
+              time: parseISO('1970-01-01T07:30:44.067Z'),
             },
             isAllotment: false,
           },
