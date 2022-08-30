@@ -1,10 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import { addDays, setHours, setMinutes } from 'date-fns'
+import subDays from 'date-fns/subDays'
 
 const prisma = new PrismaClient()
 
 async function main() {
+  await prisma.price.deleteMany()
   await prisma.variant.deleteMany()
   await prisma.resourceAmount.deleteMany()
   await prisma.resource.deleteMany()
@@ -157,6 +159,59 @@ async function main() {
         connect: {
           id: seller.id,
         },
+      },
+    },
+  })
+
+  const priceAdults = await prisma.price.create({
+    data: {
+      id: 'pa',
+      cost: 10,
+      fee: 5,
+      from: subDays(setMinutes(setHours(new Date(), 0), 0), 1),
+      to: addDays(setMinutes(setHours(new Date(), 0), 0), 2),
+      shift: {
+        connect: {
+          id: 'tavolara-boat-excursion-morning',
+        },
+      },
+      variants: {
+        connect: {
+          id: 'tavolara-boat-excursion-adults',
+        },
+      },
+      sellers: {
+        connect: [
+          {
+            id: seller.id,
+          },
+        ],
+      },
+    },
+  })
+  const priceChildren = await prisma.price.create({
+    data: {
+      id: 'pc',
+      cost: 5,
+      fee: 3,
+      from: subDays(new Date(), 1),
+      to: addDays(new Date(), 1),
+      shift: {
+        connect: {
+          id: 'tavolara-boat-excursion-morning',
+        },
+      },
+      variants: {
+        connect: {
+          id: 'tavolara-boat-excursion-children',
+        },
+      },
+      sellers: {
+        connect: [
+          {
+            id: seller.id,
+          },
+        ],
       },
     },
   })

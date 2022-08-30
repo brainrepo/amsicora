@@ -45,6 +45,7 @@ const RequestSchema = {
   },
 } as const
 
+//TODO: Define a schema for serializing the output
 export default async (server: FastifyInstance) => {
   server.post<{
     Body: FromSchema<typeof RequestSchema.body>
@@ -52,7 +53,7 @@ export default async (server: FastifyInstance) => {
   }>('/services/:serviceID/quotation', {
     onRequest: [server.authenticate, server.isSeller],
     schema: RequestSchema,
-    handler: async (req) => {
+    handler: async (req, res) => {
       const service = await server.booking.repository.service.getByIdIfSellable(
         req.params.serviceID,
         req.user.id,
@@ -77,6 +78,7 @@ export default async (server: FastifyInstance) => {
           req.body.shift,
         )
 
+      //TODO: move from invariant to procedure
       const availability = await resourcesRequestAreAvailable({
         request: {
           ...req.body,
@@ -87,10 +89,41 @@ export default async (server: FastifyInstance) => {
         variants,
       })
 
-      console.log(variants)
-      // const prices = /* await calculate prices */
+      if (availability?.errors && availability.errors?.length > 0) {
+        return res.status(200).send(availability?.errors)
+      }
 
-      // return { ...(req.body as object), ...req.params }
+      //TODO: Extract this code to a procedure
+      console.log(variants.map((v) => JSON.stringify(v.prices)))
+      if (!variants.every((v) => v.prices.length !== 0)) {
+        return server.httpErrors.notFound('prices not found')
+      }
+
+      const costs: Record<string, number> = {}
+      const fees: Record<string, number> = {}
+      const total: Record<string, number> = {}
+
+      console.log(variants.map((v) => v.prices))
+      for (const reqVariant of req.body.variants) {
+        const variant = variants.find((e) => e.id == reqVariant.id)
+        //TODO: already verified in line 37 find way to manage type guards
+        if (!variant) {
+          return server.httpErrors.notFound('variant not found')
+        }
+
+        if (!variant.prices.length) {
+          return server.httpErrors.notFound('price not found' + variant.id)
+        }
+
+        costs[variant.id] =
+          Number(variant.prices[0].cost) * Number(reqVariant.amount)
+        fees[variant.id] =
+          Number(variant.prices[0].fee) * Number(reqVariant.amount)
+        total[variant.id] = Number(costs[variant.id]) + fees[variant.id]
+      }
+
+      //TODO: Define a either data structure
+      return { costs, fees, total }
     },
   })
 }

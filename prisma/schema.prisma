@@ -98,8 +98,8 @@ model Price {
   id       String    @id @default(uuid())
   cost     Decimal
   fee      Decimal
-  from     DateTime  @db.Date
-  to       DateTime  @db.Date
+  from      DateTime        @db.Timestamptz()
+  to       DateTime   @db.Timestamptz()
   shift    Shift     @relation(fields: [shiftId], references: [id])
   shiftId  String
   sellers  User[]    @relation(name: "PriceToSeller")
