@@ -3,6 +3,7 @@ import ServiceRepository from './repository/service'
 import VariantRepository from './repository/variant'
 import autoload from '@fastify/autoload'
 import path from 'path'
+import fp from 'fastify-plugin'
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -14,8 +15,7 @@ declare module 'fastify' {
     }
   }
 }
-
-export default async (server: FastifyInstance) => {
+export default fp(async (server: FastifyInstance) => {
   server.decorate('booking', {
     repository: {
       service: ServiceRepository(server.prisma),
@@ -26,4 +26,4 @@ export default async (server: FastifyInstance) => {
   server.register(autoload, {
     dir: path.join(__dirname, 'routes'),
   })
-}
+})

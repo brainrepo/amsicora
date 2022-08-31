@@ -5,6 +5,7 @@ import variantsExist from '../invariants/variants-exist'
 import resourcesRequestAreAvailable from '../invariants/resource-request-fullfillable'
 
 const RequestSchema = {
+  tags: ['booking'] as string[],
   params: {
     type: 'object',
     properties: {
@@ -39,6 +40,34 @@ const RequestSchema = {
             },
           },
           minItems: 1,
+        },
+      },
+    },
+  },
+  response: {
+    404: {
+      message: {
+        type: 'string',
+        enum: ['SERVICE_NOT_FOUND', 'VARIANT_NOT_FOUND', 'SHIFT_NOT_FOUND'],
+      },
+    },
+    default: {
+      status: {
+        type: 'boolean',
+      },
+      errors: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            variantId: {
+              type: 'string',
+            },
+            errorType: {
+              type: 'string',
+              enum: ['RESOURCE_AVAILABILITY_NOT_ENOUGH', 'PRICE_NOT_FOUND'],
+            },
+          },
         },
       },
     },

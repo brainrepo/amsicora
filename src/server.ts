@@ -21,9 +21,29 @@ server.register(authzPlugin)
 server.register(userModule, {
   prefix: '/user',
 })
+server.register(swaggerPlugin, {
+  routePrefix: '/docs',
+  exposeRoute: true,
+  swagger: {
+    info: {
+      title: 'Amsicora api',
+      description: 'Headless booking application',
+      version: '0.1.0',
+    },
+    host: 'localhost:3000',
+    schemes: ['http'],
+    consumes: ['application/json'],
+    produces: ['application/json'],
+    tags: [
+      { name: 'auth', description: 'Auth related end-points' },
+      { name: 'booking', description: 'Booking related end-points' },
+      { name: 'user', description: 'User related end-points' },
+    ],
+  },
+})
+
 server.register(authModule, { prefix: '/auth' })
 server.register(bookingModule, { prefix: '/booking' })
-
 const start = async () => {
   try {
     await server.listen({ port: 3001 })
