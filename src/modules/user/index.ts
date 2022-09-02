@@ -21,6 +21,7 @@ export default async (server: FastifyInstance) => {
   })
 
   const registerRequestSchema = {
+    tags: ['user'] as string[],
     body: {
       type: 'object',
       properties: {

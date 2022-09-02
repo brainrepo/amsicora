@@ -8,6 +8,7 @@ export default async (server: FastifyInstance) => {
   }>('/services/:serviceID', {
     onRequest: [server.authenticate, server.isSeller],
     schema: {
+      tags: ['booking'] as string[],
       params: {
         type: 'object',
         properties: {

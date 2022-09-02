@@ -51,7 +51,7 @@ const RequestSchema = {
         enum: ['SERVICE_NOT_FOUND', 'VARIANT_NOT_FOUND', 'SHIFT_NOT_FOUND'],
       },
     },
-    default: {
+    200: {
       status: {
         type: 'boolean',
       },
@@ -89,14 +89,14 @@ export default async (server: FastifyInstance) => {
       )
 
       const variantRepository = server.booking.repository.variant
-      if (!service) return server.httpErrors.notFound('service not found')
+      if (!service) return res.status(404).send('SERVICE_NOT_FOUND')
 
       if (!variantsExist(service, req.body.variants)) {
-        return server.httpErrors.notFound('variant not found')
+        return res.status(404).send('VARIANT_NOT_FOUND')
       }
 
       if (!shiftExist(service, req.body.shift)) {
-        return server.httpErrors.notFound('shift not found')
+        return res.status(404).send('SHIFT_NOT_FOUND')
       }
 
       const variants =

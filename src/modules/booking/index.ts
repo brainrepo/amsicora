@@ -15,7 +15,7 @@ declare module 'fastify' {
     }
   }
 }
-export default fp(async (server: FastifyInstance) => {
+export default async (server: FastifyInstance) => {
   server.decorate('booking', {
     repository: {
       service: ServiceRepository(server.prisma),
@@ -26,4 +26,4 @@ export default fp(async (server: FastifyInstance) => {
   server.register(autoload, {
     dir: path.join(__dirname, 'routes'),
   })
-})
+}

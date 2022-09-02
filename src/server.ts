@@ -18,9 +18,6 @@ server.register(prismaPlugin)
 server.register(authPlugin)
 server.register(authzPlugin)
 
-server.register(userModule, {
-  prefix: '/user',
-})
 server.register(swaggerPlugin, {
   routePrefix: '/docs',
   exposeRoute: true,
@@ -44,6 +41,9 @@ server.register(swaggerPlugin, {
 
 server.register(authModule, { prefix: '/auth' })
 server.register(bookingModule, { prefix: '/booking' })
+server.register(userModule, {
+  prefix: '/user',
+})
 const start = async () => {
   try {
     await server.listen({ port: 3001 })

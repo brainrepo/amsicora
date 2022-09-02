@@ -20,6 +20,7 @@ export default async (server: FastifyInstance) => {
 
   server.post<{ Body: { email: string; password: string } }>('/token', {
     schema: {
+      tags: ['auth'] as string[],
       body: {
         type: 'object',
         properties: {
