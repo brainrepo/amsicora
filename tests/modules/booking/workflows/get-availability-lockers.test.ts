@@ -11,7 +11,7 @@ import type { PrismaClient } from '@prisma/client'
 // This test doesn't cover the elapsed availability case, it will be managed on
 // the e2e tests
 
-describe('resource-request-fullfillable', () => {
+describe('get availability lockers', () => {
   const variantRepository = VariantRepository({} as PrismaClient) as ReturnType<
     typeof VariantRepository
   >
