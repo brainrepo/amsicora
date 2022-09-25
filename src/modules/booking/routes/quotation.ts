@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { FromSchema } from 'json-schema-to-ts'
 import shiftExist from '../invariants/shift-exist'
 import variantsExist from '../invariants/variants-exist'
-import resourcesRequestAreAvailable from '../invariants/resource-request-fullfillable'
+import getAvailabilityLockers from '../workflows/get-availability-lockers'
 
 const RequestSchema = {
   tags: ['booking'] as string[],
@@ -74,7 +74,6 @@ const RequestSchema = {
   },
 } as const
 
-//TODO: Define a schema for serializing the output
 export default async (server: FastifyInstance) => {
   server.post<{
     Body: FromSchema<typeof RequestSchema.body>
@@ -107,8 +106,7 @@ export default async (server: FastifyInstance) => {
           req.body.shift,
         )
 
-      //TODO: move from invariant to procedure
-      const availability = await resourcesRequestAreAvailable({
+      const { errors: availabilityErrors } = await getAvailabilityLockers({
         request: {
           ...req.body,
           seller: { id: req.user.id },
@@ -118,8 +116,8 @@ export default async (server: FastifyInstance) => {
         variants,
       })
 
-      if (availability?.errors && availability.errors?.length > 0) {
-        return res.status(200).send(availability?.errors)
+      if (availabilityErrors && availabilityErrors.length > 0) {
+        return res.status(200).send(availabilityErrors)
       }
 
       //TODO: Extract this code to a procedure
