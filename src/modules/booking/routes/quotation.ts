@@ -1,8 +1,20 @@
+import {
+  BookingServiceNotFound,
+  BookingShiftNotFound,
+  BookingVariantNotFound,
+  BOOKING_MALFORMED_REQUEST,
+  BOOKING_NOT_AVAILABLE_RESOURCE,
+  BOOKING_VARIANT_WITHOUT_PRICE,
+  SERVICE_NOT_FOUND,
+  SHIFT_NOT_FOUND,
+  VARIANT_NOT_FOUND,
+} from './../errors'
 import { FastifyInstance } from 'fastify'
 import { FromSchema } from 'json-schema-to-ts'
 import shiftExist from '../invariants/shift-exist'
-import variantsExist from '../invariants/variants-exist'
+import getNotValidVariants from '../invariants/get-not-valid-variants'
 import getAvailabilityLockers from '../workflows/get-availability-lockers'
+import getPrice from '../workflows/get-price'
 
 const RequestSchema = {
   tags: ['booking'] as string[],
@@ -46,26 +58,81 @@ const RequestSchema = {
   },
   response: {
     404: {
-      message: {
-        type: 'string',
-        enum: ['SERVICE_NOT_FOUND', 'VARIANT_NOT_FOUND', 'SHIFT_NOT_FOUND'],
+      type: 'object',
+      properties: {
+        errors: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              message: {
+                type: 'string',
+                enum: [SERVICE_NOT_FOUND, VARIANT_NOT_FOUND, SHIFT_NOT_FOUND],
+              },
+              serviceID: {
+                type: 'string',
+              },
+              shiftID: {
+                type: 'string',
+              },
+            },
+          },
+        },
       },
     },
     200: {
       status: {
         type: 'boolean',
       },
-      errors: {
+      prices: {
+        type: 'object',
+        properties: {
+          costs: {
+            type: 'object',
+            additionalProperties: true,
+          },
+          fees: {
+            type: 'object',
+            additionalProperties: true,
+          },
+          totals: {
+            type: 'object',
+            additionalProperties: true,
+          },
+        },
+      },
+      availabilityErrors: {
         type: 'array',
         items: {
           type: 'object',
           properties: {
-            variantId: {
+            variantID: {
               type: 'string',
             },
-            errorType: {
+            message: {
               type: 'string',
-              enum: ['RESOURCE_AVAILABILITY_NOT_ENOUGH', 'PRICE_NOT_FOUND'],
+            },
+            name: {
+              type: 'string',
+              enum: [BOOKING_MALFORMED_REQUEST, BOOKING_NOT_AVAILABLE_RESOURCE],
+            },
+          },
+        },
+      },
+      priceErrors: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            variantID: {
+              type: 'string',
+            },
+            message: {
+              type: 'string',
+            },
+            name: {
+              type: 'string',
+              enum: [BOOKING_VARIANT_WITHOUT_PRICE],
             },
           },
         },
@@ -88,14 +155,38 @@ export default async (server: FastifyInstance) => {
       )
 
       const variantRepository = server.booking.repository.variant
-      if (!service) return res.status(404).send('SERVICE_NOT_FOUND')
+      if (!service)
+        return res.status(404).send({
+          errors: [
+            new BookingServiceNotFound(
+              `The service '${req.params.serviceID}' is not found`,
+              req.params.serviceID,
+            ),
+          ],
+        })
 
-      if (!variantsExist(service, req.body.variants)) {
-        return res.status(404).send('VARIANT_NOT_FOUND')
+      const notValidVariants = getNotValidVariants(req.body.variants, service)
+      if (notValidVariants.length) {
+        return res.status(404).send({
+          errors: notValidVariants.map(
+            (e) =>
+              new BookingVariantNotFound(
+                `The variant '${e}' is not found`,
+                notValidVariants as string[],
+              ),
+          ),
+        })
       }
 
       if (!shiftExist(service, req.body.shift)) {
-        return res.status(404).send('SHIFT_NOT_FOUND')
+        return res.status(404).send({
+          errors: [
+            new BookingShiftNotFound(
+              `The shift '${req.body.shift}' is not found`,
+              req.body.shift,
+            ),
+          ],
+        })
       }
 
       const variants =
@@ -110,47 +201,27 @@ export default async (server: FastifyInstance) => {
         request: {
           ...req.body,
           seller: { id: req.user.id },
-          shift: req.body.shift,
-          date: req.body.date,
+          shift: req.body.shift, //?
+          date: req.body.date, //?
         },
         variants,
       })
 
-      if (availabilityErrors && availabilityErrors.length > 0) {
-        return res.status(200).send(availabilityErrors)
-      }
+      const { prices, errors: priceErrors } = await getPrice({
+        request: {
+          ...req.body,
+          seller: { id: req.user.id },
+          shift: req.body.shift, //?
+          date: req.body.date, //?
+        },
+        variants,
+      })
 
-      //TODO: Extract this code to a procedure
-      console.log(variants.map((v) => JSON.stringify(v.prices)))
-      if (!variants.every((v) => v.prices.length !== 0)) {
-        return server.httpErrors.notFound('prices not found')
-      }
+      const status =
+        !(priceErrors && priceErrors.length) &&
+        !(availabilityErrors && availabilityErrors.length)
 
-      const costs: Record<string, number> = {}
-      const fees: Record<string, number> = {}
-      const total: Record<string, number> = {}
-
-      console.log(variants.map((v) => v.prices))
-      for (const reqVariant of req.body.variants) {
-        const variant = variants.find((e) => e.id == reqVariant.id)
-        //TODO: already verified in line 37 find way to manage type guards
-        if (!variant) {
-          return server.httpErrors.notFound('variant not found')
-        }
-
-        if (!variant.prices.length) {
-          return server.httpErrors.notFound('price not found' + variant.id)
-        }
-
-        costs[variant.id] =
-          Number(variant.prices[0].cost) * Number(reqVariant.amount)
-        fees[variant.id] =
-          Number(variant.prices[0].fee) * Number(reqVariant.amount)
-        total[variant.id] = Number(costs[variant.id]) + fees[variant.id]
-      }
-
-      //TODO: Define a either data structure
-      return { costs, fees, total }
+      return { status, prices, availabilityErrors, priceErrors }
     },
   })
 }
