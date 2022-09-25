@@ -201,8 +201,6 @@ export default async (server: FastifyInstance) => {
         request: {
           ...req.body,
           seller: { id: req.user.id },
-          shift: req.body.shift, //?
-          date: req.body.date, //?
         },
         variants,
       })
@@ -211,8 +209,6 @@ export default async (server: FastifyInstance) => {
         request: {
           ...req.body,
           seller: { id: req.user.id },
-          shift: req.body.shift, //?
-          date: req.body.date, //?
         },
         variants,
       })
