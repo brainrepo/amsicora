@@ -2,7 +2,6 @@ import { ResourceAmountLocker } from '@prisma/client'
 import VariantRepository from '../repository/variant'
 import { sum } from '../../../utils/array'
 import { BookingMalformedRequest, BookingNotAvailableResource } from '../errors'
-import variant from '../repository/variant'
 import { ArrayItemType } from '../../../utils/types'
 
 //TODO: Clear exported interfaces for in and out
@@ -37,7 +36,7 @@ type Variants = Awaited<
   >
 >
 
-export default async function resourcesAvailable({
+export default async function getAvailabilityLockers({
   request,
   variants,
 }: {
@@ -82,7 +81,6 @@ export default async function resourcesAvailable({
           lockedAmountInThisRequest
 
         const isAvailabileAmountEnough = availableAmount >= residualAmount
-        // Update lockers
         lockers = [
           ...lockers,
           {
@@ -91,7 +89,6 @@ export default async function resourcesAvailable({
             sellerId: request.seller.id,
           },
         ]
-        // Update residual amount
         residualAmount = isAvailabileAmountEnough
           ? 0
           : residualAmount - availableAmount

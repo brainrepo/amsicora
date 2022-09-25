@@ -1,7 +1,7 @@
 import VariantRepository from '../../../../src/modules/booking/repository/variant'
-import resourcesAvailable from '../../../../src/modules/booking/invariants/resource-request-fullfillable'
+import resourcesAvailable from '../../../../src/modules/booking/workflows/get-availability-lockers'
 import { BookingNotAvailableResource } from '../../../../src/modules/booking/errors'
-import enoughAvailability from './mocks/enough-availability'
+import enoughAvailability from '../fixtures/enough-availability'
 import type { PrismaClient } from '@prisma/client'
 
 // !IMPORTANT:
