@@ -197,7 +197,7 @@ export default async (server: FastifyInstance) => {
           req.body.shift,
         )
 
-      const { errors: availabilityErrors } = await getAvailabilityLockers({
+      const { errors: availabilityErrors } = getAvailabilityLockers({
         request: {
           ...req.body,
           seller: { id: req.user.id },
@@ -205,7 +205,7 @@ export default async (server: FastifyInstance) => {
         variants,
       })
 
-      const { prices, errors: priceErrors } = await getPrice({
+      const { prices, errors: priceErrors } = getPrice({
         request: {
           ...req.body,
           seller: { id: req.user.id },

@@ -36,13 +36,13 @@ type Variants = Awaited<
   >
 >
 
-export default async function getAvailabilityLockers({
+export default function getAvailabilityLockers({
   request,
   variants,
 }: {
   request: Request
   variants: Variants
-}): Promise<Response> {
+}): Response {
   if (
     variants.length !== request.variants.length ||
     request.variants.length === 0

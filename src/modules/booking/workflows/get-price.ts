@@ -32,13 +32,13 @@ type VariantsWithPrices = Awaited<
   >
 >
 
-export default async function getPrice({
+export default function getPrice({
   request,
   variants,
 }: {
   request: Request
   variants: VariantsWithPrices
-}): Promise<Response> {
+}): Response {
   //variants withou prices
   const variantsWithoutPrice = variants.filter((v) => v.prices.length === 0)
 
